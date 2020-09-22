@@ -10,7 +10,7 @@ MLX90615 kernel iio driver, i2c address 0x5b
    sudo dkms install mlx90615/1.0 
    sudo dtc -I dts -O dtb -o /boot/overlays/mlx90615.dtbo mlx90615.dts ```
    
-   
-## /boot/config.txt
+
+## boot config.txt
 
 add dtoverlay=mlx90615
