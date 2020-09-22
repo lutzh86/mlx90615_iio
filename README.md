@@ -8,4 +8,9 @@ MLX90615 kernel iio driver, i2c address 0x5b
 ```bash cd mlx90615_iio
    sudo ln -s /home/pi/mlx90615_iio /usr/src/mlx90615-1.0
    sudo dkms install mlx90615/1.0 
-   sudo dtc -I dts -O dtb -o /boot/overlays/touch.dtbo touch.dts ```
+   sudo dtc -I dts -O dtb -o /boot/overlays/mlx90615.dtbo mlx90615.dts ```
+   
+   
+## /boot/config.txt
+
+add dtoverlay=mlx90615
