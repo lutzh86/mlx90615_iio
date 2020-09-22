@@ -61,8 +61,6 @@ IIR 3 Bits
 cuts off spikes 100% means no cut off 
 
 
-
-
 */
 
 
@@ -83,10 +81,10 @@ cuts off spikes 100% means no cut off
 #define MLX90615_CONST_EMISSIVITY_RESOLUTION 61035 /* 1/16384 ~ 0.000061035 */
 
 /* Bandwidth values for IIR filtering */
-static const int mlx90615_iir_values[] = {0, 14, 16, 20, 25, 33, 50, 100};       /* IIR spikes in %  */
+static const int mlx90615_iir_values[] = {0, 100, 50, 33, 25, 20, 16,  14};       /* IIR spikes in %  */
 
 static IIO_CONST_ATTR(in_temp_object_filter_low_pass_3db_frequency_available,
-		       "0.0 0.14 0.16 0.20 0.25 0.33 0.5 1.0");
+		       "1.0 0.5 0.33 0.25 0.2 0.16 0.14");
            
 struct mlx90615_data {
 	struct i2c_client *client;
@@ -153,7 +151,7 @@ static inline s32 mlx90615_iir_search(const struct i2c_client *client,
 	int i;
 	s32 ret;
 
-	for (i = 0; i < ARRAY_SIZE(mlx90615_iir_values); ++i) {
+	for (i = 1; i < ARRAY_SIZE(mlx90615_iir_values); ++i) {
 		if (value == mlx90615_iir_values[i])
 			break;
 	}
@@ -216,7 +214,7 @@ static int mlx90615_read_raw(struct iio_dev *indio_dev,
 
 		/* MSB is an error flag */
 		if (ret & 0x8000)
-    /* if (ret > 0x7FFF)*/
+    		/* if (ret > 0x7FFF)*/
 			return -EIO;
 
 		*val = ret;
@@ -229,12 +227,11 @@ static int mlx90615_read_raw(struct iio_dev *indio_dev,
 		*val = MLX90615_CONST_SCALE;
 		return IIO_VAL_INT;
 	case IIO_CHAN_INFO_CALIBEMISSIVITY: /* 1/16384 / LSB */
-		
+
 		mutex_lock(&data->lock);
 		ret = i2c_smbus_read_word_data(data->client,
 					       MLX90615_EMISSIVITY);
 		mutex_unlock(&data->lock);
-		
 
 		if (ret < 0)
 			return ret;
@@ -251,17 +248,15 @@ static int mlx90615_read_raw(struct iio_dev *indio_dev,
 		mutex_lock(&data->lock);
 		ret = i2c_smbus_read_word_data(data->client, MLX90615_CONFIG);
 		mutex_unlock(&data->lock);
-    
-    if (ret < 0)
+
+		if (ret < 0)
 			return ret;
 
 		*val = mlx90615_iir_values[(ret & MLX90615_CONFIG_IIR_MASK) >> MLX90615_CONFIG_IIR_SHIFT ] / 100;
 		*val2 = (mlx90615_iir_values[(ret & MLX90615_CONFIG_IIR_MASK) >> MLX90615_CONFIG_IIR_SHIFT ] % 100) *
 			10000;
 		return IIO_VAL_INT_PLUS_MICRO;
-    
-    
-    
+
 	default:
 		return -EINVAL;
 	}
@@ -336,7 +331,7 @@ static const struct iio_chan_spec mlx90615_channels[] = {
 		.channel2 = IIO_MOD_TEMP_OBJECT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
 		    BIT(IIO_CHAN_INFO_CALIBEMISSIVITY) |
-			BIT(IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY),
+		    BIT(IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY),
 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_OFFSET) |
 		    BIT(IIO_CHAN_INFO_SCALE),
 	},
