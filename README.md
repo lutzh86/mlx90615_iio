@@ -1,6 +1,8 @@
 # mlx90615-iio
 MLX90615 kernel iio driver, i2c address 0x5b
 
+guide for raspberry pi 
+
 ## prerequisites
 ```bash
 sudo apt-get install dkms git
@@ -29,3 +31,12 @@ add
 dtoverlay=mlx90615
 ```
 
+## one shot access
+
+```bash
+cat /sys/bus/iio/devices/iio\:device0/in_temp_object_raw 
+cat /sys/bus/iio/devices/iio\:device0/in_temp_ambient_raw
+cat /sys/bus/iio/devices/iio\:device0/in_temp_offset
+cat /sys/bus/iio/devices/iio\:device0/in_temp_scale
+```
+Calculate temperature (millicelsius): (in_temp_object_raw + in_temp_offset) * in_temp_scale
