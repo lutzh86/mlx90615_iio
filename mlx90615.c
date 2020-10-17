@@ -315,7 +315,7 @@ static int mlx90615_write_raw(struct iio_dev *indio_dev,
 static int mlx90615_work_buffer(struct iio_dev *indio_dev)
 {
 	struct mlx90615_data *data = iio_priv(indio_dev);
-	int ret;
+	int ret, i = 0;
 	s64 time;
 
 
@@ -335,6 +335,7 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
                 if (ret & 0x8000)
                         return -EIO;
 		data->scan.chan[0] = (unsigned int)ret;
+                i++;
 	}
 
         if (test_bit(1, indio_dev->active_scan_mask)) 
@@ -344,7 +345,7 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
                         return ret;
                 if (ret & 0x8000)
                         return -EIO;
-                data->scan.chan[1] = (unsigned int)ret;
+                data->scan.chan[i] = (unsigned int)ret;
         }
 
 	iio_push_to_buffers_with_timestamp(indio_dev, &data->scan, time);
