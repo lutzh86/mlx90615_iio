@@ -30,20 +30,22 @@ __used __section(__versions) = {
 	{ 0x201ecc68, "iio_read_const_attr" },
 	{ 0xdf154d7d, "i2c_del_driver" },
 	{ 0x79c33ccc, "i2c_register_driver" },
-	{ 0xdecd0b29, "__stack_chk_fail" },
+	{ 0x5fc262cb, "mutex_unlock" },
+	{ 0xab5a9451, "i2c_smbus_read_word_data" },
+	{ 0x195a71c2, "mutex_lock" },
 	{ 0xf9a482f9, "msleep" },
 	{ 0xe887de49, "i2c_smbus_xfer" },
-	{ 0x8f678b07, "__stack_chk_guard" },
-	{ 0x5fc262cb, "mutex_unlock" },
-	{ 0x195a71c2, "mutex_lock" },
 	{ 0x8f05733b, "wake_up_process" },
 	{ 0x1ee8d6d4, "refcount_inc_checked" },
 	{ 0xe350121a, "kthread_create_on_node" },
+	{ 0xdecd0b29, "__stack_chk_fail" },
+	{ 0xc5850110, "printk" },
+	{ 0x1e3509dd, "iio_push_to_buffers" },
+	{ 0x4fd7c893, "i2c_smbus_read_i2c_block_data" },
+	{ 0x389f25fc, "iio_get_time_ns" },
 	{ 0xb3f7646e, "kthread_should_stop" },
 	{ 0xcc5005fe, "msleep_interruptible" },
-	{ 0x1e3509dd, "iio_push_to_buffers" },
-	{ 0xab5a9451, "i2c_smbus_read_word_data" },
-	{ 0x389f25fc, "iio_get_time_ns" },
+	{ 0x8f678b07, "__stack_chk_guard" },
 	{ 0x976ffd4b, "__put_task_struct" },
 	{ 0xc1e58a5f, "refcount_dec_and_test_checked" },
 	{ 0x9a4db3ef, "kthread_stop" },
@@ -60,4 +62,4 @@ MODULE_INFO(depends, "industrialio,kfifo_buf");
 
 MODULE_ALIAS("i2c:mlx90615");
 
-MODULE_INFO(srcversion, "922C193E436B45B6DCFE64E");
+MODULE_INFO(srcversion, "97099A7F019D41D868E9587");
