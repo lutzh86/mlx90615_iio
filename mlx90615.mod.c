@@ -59,4 +59,4 @@ MODULE_INFO(depends, "industrialio,kfifo_buf");
 
 MODULE_ALIAS("i2c:mlx90615");
 
-MODULE_INFO(srcversion, "EB51D2F3F1686E24693DC00");
+MODULE_INFO(srcversion, "52932B8A287EBAF0F2D823C");
