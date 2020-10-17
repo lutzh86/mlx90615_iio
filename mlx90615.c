@@ -358,7 +358,7 @@ static int mlx90615_capture_thread(void *data)
 {
 	struct iio_dev *indio_dev = data;
 	int sampling_ms = 100;
-	int ret;
+	int ret, slept_ms=0;
 	//struct timespec64 next, now, delta;
 	//s64 delay_us;
 
@@ -367,9 +367,13 @@ static int mlx90615_capture_thread(void *data)
 
 	do {
 
+                if (slept_ms == 0) {
 		ret = mlx90615_work_buffer(indio_dev);
+                slept_ms = msleep_interruptible(sampling_ms);
 		if (ret < 0)
 			return ret;
+                }
+                else {slept_ms = msleep_interruptible(slept_ms);}
 
 		//ktime_get_ts64(&now);
 
@@ -388,7 +392,6 @@ static int mlx90615_capture_thread(void *data)
 		usleep_range(delay_us, (delay_us * 3) >> 1);
                 */
 
-                msleep(sampling_ms);
 
 	} while (!kthread_should_stop());
 
@@ -475,7 +478,7 @@ static const struct iio_chan_spec mlx90615_channels[] = {
                         .realbits = 16,
                         .storagebits = 16,
                         .shift = 0,
-                        .endianness = IIO_BE,
+                        .endianness = IIO_LE,
                 },
 	},
 	{
@@ -494,7 +497,7 @@ static const struct iio_chan_spec mlx90615_channels[] = {
                         .realbits = 16,
                         .storagebits = 16,
                         .shift = 0,
-                        .endianness = IIO_BE,
+                        .endianness = IIO_LE,
                 },
 
 	},
