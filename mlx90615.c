@@ -562,7 +562,7 @@ static const struct iio_chan_spec mlx90615_channels[] =
 	{
 		.type = IIO_TEMP,
 		.modified = 1,
-		.indexed = 1,
+		//.indexed = 1,
 		.channel2 = IIO_MOD_TEMP_AMBIENT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_OFFSET) |
@@ -580,7 +580,7 @@ static const struct iio_chan_spec mlx90615_channels[] =
 	{
 		.type = IIO_TEMP,
 		.modified = 1,
-		.indexed = 1,
+		//.indexed = 1,
 		.channel2 = IIO_MOD_TEMP_OBJECT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
 		BIT(IIO_CHAN_INFO_CALIBEMISSIVITY) |
