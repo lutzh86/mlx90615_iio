@@ -100,7 +100,7 @@ cuts off spikes 100% means no cut off
 /* IIR spikes in %  */
 static const int mlx90615_iir_values[] =
 {
-	-1, 100, 50, 33, 25, 20, 16,  14
+	100, 100, 50, 33, 25, 20, 16,  14
 };
 
 static IIO_CONST_ATTR(in_temp_object_filter_low_pass_3db_frequency_available,
@@ -150,10 +150,6 @@ static const struct attribute_group mlx90615_attr_group =
 	.attrs = mlx90615_attributes,
 };
 
-/*
- * Erase an address and write word.
- * The mutex must be locked before calling.
- */
 
 
 /*uint8_t crc8(uint8_t * data, int size)
@@ -196,8 +192,8 @@ u16 value)
 	union i2c_smbus_data data;
 	s32 ret;
 
-	dev_dbg(&client->dev, "Writing 0x%x to address 0x%x", value, command);
-
+	dev_info(&client->dev, "Writing 0x%x to address 0x%x", value, command);
+        
 	data.word = 0x0000;			 /* erase command */
 	ret = i2c_smbus_xfer(client->adapter, client->addr,
 		client->flags | I2C_CLIENT_PEC,
@@ -215,6 +211,11 @@ u16 value)
 		I2C_SMBUS_WORD_DATA, &data);
 
 	msleep(MLX90615_TIMING_EEPROM);
+        
+        if (value !=  i2c_smbus_read_word_data(client, command)) {
+        dev_info(&client->dev, "Error Writing 0x%x to address 0x%x, retrying", value, command);
+        return mlx90615_write_word(client,command, value);
+        }
 
 	return ret;
 }
@@ -244,15 +245,13 @@ int value)
 	 * we must read them before we actually write
 	 * changes
 	 */
+
 	ret = i2c_smbus_read_word_data(client, MLX90615_CONFIG);
-	if (ret < 0)
+	if (ret < 1)  // IIR 0 is forbidden
 		return ret;
 
-	/* Write changed values */
-	/* ret = ret & 0x8FFF;
-	 ret = ret + (i << MLX90615_CONFIG_IIR_SHIFT);     */
 
-	ret &= ~(MLX90615_CONFIG_IIR_MASK << MLX90615_CONFIG_IIR_SHIFT);
+	ret &= ~(MLX90615_CONFIG_IIR_MASK);
 	ret |= (i << MLX90615_CONFIG_IIR_SHIFT);
         ret |= 1; // set SMBUS mode always active !
 	/* Write changed values */
@@ -260,6 +259,7 @@ int value)
 	ret = mlx90615_write_word(client, MLX90615_CONFIG,ret);
 
 	return ret;
+        
 }
 
 
@@ -383,8 +383,9 @@ int val2, long mask)
 				return -EINVAL;
 
 			mutex_lock(&data->lock);
-			ret = mlx90615_iir_search(data->client,
-				val * 100);
+			
+                        ret = mlx90615_iir_search(data->client,
+					  val * 100 + val2 / 10000);
 			/* write IIR */
 			mutex_unlock(&data->lock);
 
