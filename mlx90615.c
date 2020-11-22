@@ -79,7 +79,7 @@ cuts off spikes 100% means no cut off
 #define MLX90615_TOBJ           (MLX90615_OP_RAM | 0x07)
 
 /* time for EEPROM write/erase to complete */
-#define MLX90615_TIMING_EEPROM    10
+#define MLX90615_TIMING_EEPROM    20
  /* time to hold SDA low for wake-up */
 #define MLX90615_TIMING_WAKEUP    39
  /* time before first data after wake-up */
@@ -100,7 +100,7 @@ cuts off spikes 100% means no cut off
 /* IIR spikes in %  */
 static const int mlx90615_iir_values[] =
 {
-	0, 100, 50, 33, 25, 20, 16,  14
+	-1, 100, 50, 33, 25, 20, 16,  14
 };
 
 static IIO_CONST_ATTR(in_temp_object_filter_low_pass_3db_frequency_available,
@@ -252,9 +252,9 @@ int value)
 	/* ret = ret & 0x8FFF;
 	 ret = ret + (i << MLX90615_CONFIG_IIR_SHIFT);     */
 
-	ret &= ~MLX90615_CONFIG_IIR_MASK;
-	ret |= i << MLX90615_CONFIG_IIR_SHIFT;
-
+	ret &= ~(MLX90615_CONFIG_IIR_MASK << MLX90615_CONFIG_IIR_SHIFT);
+	ret |= (i << MLX90615_CONFIG_IIR_SHIFT);
+        ret |= 1; // set SMBUS mode always active !
 	/* Write changed values */
 
 	ret = mlx90615_write_word(client, MLX90615_CONFIG,ret);
@@ -346,8 +346,7 @@ int *val2, long mask)
 				return ret;
 
 			*val = mlx90615_iir_values[(ret & MLX90615_CONFIG_IIR_MASK) >> MLX90615_CONFIG_IIR_SHIFT ] / 100;
-			*val2 = (mlx90615_iir_values[(ret & MLX90615_CONFIG_IIR_MASK) >> MLX90615_CONFIG_IIR_SHIFT ] % 100) *
-				10000;
+			*val2 = (mlx90615_iir_values[(ret & MLX90615_CONFIG_IIR_MASK) >> MLX90615_CONFIG_IIR_SHIFT ] % 100) * 10000;
 			return IIO_VAL_INT_PLUS_MICRO;
 
 		default:
@@ -385,7 +384,7 @@ int val2, long mask)
 
 			mutex_lock(&data->lock);
 			ret = mlx90615_iir_search(data->client,
-				val * 100 + val2 / 10000);
+				val * 100);
 			/* write IIR */
 			mutex_unlock(&data->lock);
 
