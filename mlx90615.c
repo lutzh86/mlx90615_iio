@@ -211,7 +211,6 @@ u16 value)
 		I2C_SMBUS_WORD_DATA, &data);
 
 	msleep(MLX90615_TIMING_EEPROM);
-        
         if (value !=  i2c_smbus_read_word_data(client, command)) {
         dev_info(&client->dev, "Error Writing 0x%x to address 0x%x, retrying", value, command);
         return mlx90615_write_word(client,command, value);
@@ -240,6 +239,9 @@ int value)
 	if (i == ARRAY_SIZE(mlx90615_iir_values))
 		return -EINVAL;
 
+        dev_info(&client->dev, "Writing IIR Bits 0x%x", value);
+
+
 	/*
 	 * CONFIG register values must not be changed so
 	 * we must read them before we actually write
@@ -247,7 +249,7 @@ int value)
 	 */
 
 	ret = i2c_smbus_read_word_data(client, MLX90615_CONFIG);
-	if (ret < 1)  // IIR 0 is forbidden
+	if (ret < 0) 
 		return ret;
 
 
@@ -259,7 +261,7 @@ int value)
 	ret = mlx90615_write_word(client, MLX90615_CONFIG,ret);
 
 	return ret;
-        
+
 }
 
 
@@ -383,7 +385,6 @@ int val2, long mask)
 				return -EINVAL;
 
 			mutex_lock(&data->lock);
-			
                         ret = mlx90615_iir_search(data->client,
 					  val * 100 + val2 / 10000);
 			/* write IIR */
