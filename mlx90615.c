@@ -304,12 +304,12 @@ int *val2, long mask)
 
 			{
 				printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-				return -2;
+				return -EBADMSG;
 			}
 
 			if (rbuf[4] & 0x80)
 			{
-				return -EIO;
+				return -EBADMSG;
 			}
 
 			*val = (rbuf[4]<<8 | rbuf[3]);
@@ -426,9 +426,9 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
 		if (crc8citt((uint8_t *)rbuf, 5)  != rbuf[5])
 		{
 			printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-			return -2;
+			return -EBADMSG;
 		}
-		if (rbuf[4] & 0x80)   { return -EIO;}
+		if (rbuf[4] & 0x80)   { return -EBADMSG;}
 		data->scan.chan[0] = (rbuf[4]<<8 | rbuf[3]);
 		i++;
 	}
@@ -442,9 +442,9 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
 		if (crc8citt((uint8_t *)rbuf, 5)  != rbuf[5])
 		{
 			printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-			return -2;
+			return -EBADMSG;
 		}
-		if (rbuf[4] & 0x80)   { return -EIO;}
+		if (rbuf[4] & 0x80)   { return -EBADMSG;}
 		data->scan.chan[i] = (rbuf[4]<<8 | rbuf[3]);
 
 	}
