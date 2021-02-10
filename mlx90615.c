@@ -175,6 +175,17 @@ u16 value)
 	union i2c_smbus_data data;
 	s32 ret;
 
+
+        ret = i2c_smbus_read_word_data(client, command);
+
+        if (ret < 0) {
+                dev_info(&client->dev, "Error Reading MLX90615, retrying");
+                return ret;
+                }
+
+
+        if (ret != value) {
+
 	dev_info(&client->dev, "Writing 0x%x to address 0x%x", value, command);
 
 	data.word = 0x0000;			 /* erase command */
@@ -188,8 +199,6 @@ u16 value)
 
 	if (ret < 0)
 		return mlx90615_write_word(client, command, value);
-
-        dev_info(&client->dev, "waiting for EEPROM erase");
 
 
 	msleep(MLX90615_TIMING_EEPROM);
@@ -218,7 +227,9 @@ u16 value)
         dev_info(&client->dev, "Successful: 0x%x to address 0x%x", value, command);
 
 
-        }
+        } }
+
+        else { dev_info(&client->dev, "No Write needed: 0x%x to address 0x%x", value, command); }
 
 	return ret;
 }
@@ -248,21 +259,25 @@ static inline s32 mlx90615_iir_search(const struct i2c_client *client, int value
 	 * CONFIG register values must not be changed so
 	 * we must read them before we actually write
 	 * changes
+         * factory default: i2cset -y 2 0x5b 0x12 0x14d9 wp
 	 */
 
 	ret = i2c_smbus_read_word_data(client, MLX90615_CONFIG);
 	if (ret < 0) {
                 dev_info(&client->dev, "Error Reading MLX90615 Config, retrying");
-                
 		return ret;
                 }
 
-        dev_info(&client->dev, "OLD CONFIG: 0x%x", ret);
+        dev_info(&client->dev, "ACTUAL MLX90615 CONFIG WORD 0x12: 0x%x", ret);
 
 
         ret2 = ret;
 	ret2 &= ~(MLX90615_CONFIG_IIR_MASK);
 	ret2 |= (i << MLX90615_CONFIG_IIR_SHIFT);
+
+        if (ret2 & 1 == 0) return 0;     // SMBUS needs to be always active
+        if (ret2 & 0x400 == 0) return 0; // GAIN 40 required
+
         ret2 |= 1; // set SMBUS mode always active !
 	/* Write changed values */
         if (ret2 != ret) return mlx90615_write_word(client, MLX90615_CONFIG,ret2);
@@ -304,12 +319,12 @@ int *val2, long mask)
 
 			{
 				printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-				return -EBADMSG;
+				return -2;
 			}
 
 			if (rbuf[4] & 0x80)
 			{
-				return -EBADMSG;
+				return -EIO;
 			}
 
 			*val = (rbuf[4]<<8 | rbuf[3]);
@@ -426,9 +441,9 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
 		if (crc8citt((uint8_t *)rbuf, 5)  != rbuf[5])
 		{
 			printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-			return -EBADMSG;
+			return -2;
 		}
-		if (rbuf[4] & 0x80)   { return -EBADMSG;}
+		if (rbuf[4] & 0x80)   { return -EIO;}
 		data->scan.chan[0] = (rbuf[4]<<8 | rbuf[3]);
 		i++;
 	}
@@ -442,9 +457,9 @@ static int mlx90615_work_buffer(struct iio_dev *indio_dev)
 		if (crc8citt((uint8_t *)rbuf, 5)  != rbuf[5])
 		{
 			printk(KERN_INFO "MLX90615: value: %04x PEC error %02x",(rbuf[4]<<8 | rbuf[3]),rbuf[5]);
-			return -EBADMSG;
+			return -2;
 		}
-		if (rbuf[4] & 0x80)   { return -EBADMSG;}
+		if (rbuf[4] & 0x80)   { return -EIO;}
 		data->scan.chan[i] = (rbuf[4]<<8 | rbuf[3]);
 
 	}
